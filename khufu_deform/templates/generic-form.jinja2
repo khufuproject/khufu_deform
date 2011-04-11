@@ -1,0 +1,9 @@
+{% extends "khufu_deform:templates/layout.jinja2" %}
+{% block extra_head %}
+{% include "khufu_deform:templates/deform-head.jinja2" %}
+{% endblock %}
+{% block title %}Add New {{item_label}}{% endblock %}
+{% block content %}
+<h2>Add New {{item_label}}</h2>
+{{ form|safe }}
+{% endblock %}
