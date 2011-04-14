@@ -1,1 +1,2 @@
-global-include *.txt Makefile *.py *.rst .gitignore
+global-include *.txt Makefile *.py *.rst .gitignore *.jinja2
+
