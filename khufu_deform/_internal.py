@@ -4,7 +4,6 @@ from sqlalchemy.sql import func
 import sqlalchemy
 from pyramid.view import view_config
 from khufu_sqlalchemy import dbsession
-from pyramid.httpexceptions import HTTPTemporaryRedirect
 
 
 class DBUniqueCheck(object):
@@ -156,7 +155,6 @@ class AddFormView(object):
 class ObjectCreated(object):
     def __init__(self, obj):
         self.obj = obj
-
 
 
 class view_add_form_config(object):
