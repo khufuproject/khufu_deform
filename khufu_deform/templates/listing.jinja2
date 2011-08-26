@@ -1,0 +1,33 @@
+{% extends "khufu_deform:templates/layout.jinja2" %}
+{% block extra_head %}
+{% include "khufu_deform:templates/deform-head.jinja2" %}
+{% endblock %}
+{% block title %}{{item_label}}: Listing{% endblock %}
+{% block content %}
+<div class="khufu_deform">
+<h2>{{item_label}}: Listing</h2>
+{% if can_add %}
+<a href="@@add">Add New</a>
+{% endif %}
+
+<table class="listing">
+  <thead>
+    <tr>
+{% for item in header_items -%}
+      <th>{{item}}</th>
+{%- endfor %}
+    </tr>
+  </thead>
+  <tbody>
+{% for record in items -%}
+    <tr>
+{% for item in record -%}
+      <td>{{item}}</td>
+{%- endfor %}
+    </tr>
+{%- endfor %}
+  </tbody>
+</table>
+{{pager}}
+</div>
+{% endblock %}

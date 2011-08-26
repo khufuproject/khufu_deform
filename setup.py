@@ -7,6 +7,8 @@ CHANGES = open(os.path.join(here, 'CHANGES.txt')).read()
 
 requires = [
     'deform',
+    'khufu_sqlalchemy',
+    'pyramid_jinja2'
     ]
 
 setup(name='khufu_deform',

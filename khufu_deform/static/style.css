@@ -1,0 +1,11 @@
+.khufu_deform {
+    font-family: Ubuntu, Arial, Tahoma, Verdana, Sans-Serif;
+}
+
+.khufu_deform table.listing {
+    width: 100%;
+}
+
+.khufu_deform th {
+    text-align: left;
+}

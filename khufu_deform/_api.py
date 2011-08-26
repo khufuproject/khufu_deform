@@ -1,9 +1,6 @@
 import colander
-import deform
-from sqlalchemy.sql import func
 import sqlalchemy
-from pyramid.view import view_config
-from khufu_sqlalchemy import dbsession
+from sqlalchemy.sql import func
 
 
 class DBUniqueCheck(object):
@@ -86,11 +83,15 @@ class ModelToSchemaMapper(object):
 
         return colander.SchemaNode(**kwargs)
 
-    def model_to_schema(self, model_class, excludes=[]):
+    def model_to_schema(self, model_class, excludes=[],
+                        omit_primary_key=False):
         nodes = {}
         for col in model_class.__mapper__.columns:
             if col.name in excludes:
                 continue
+            if col.primary_key and omit_primary_key:
+                continue
+
             node = self.column_to_node(model_class, col)
             nodes[col.name] = node
 
@@ -106,81 +107,3 @@ class ModelToSchemaMapper(object):
 
 
 model_to_schema = ModelToSchemaMapper().model_to_schema
-
-
-class AddFormView(object):
-    def __init__(self, model, name='add',
-                 renderer='', pre_validate=None,
-                 model_label=u'',
-                 validator=None,
-                 excludes=[]):
-        self.model = model
-        self.name = name
-        self.model_label = model_label
-        self.renderer = renderer or \
-            'khufu_deform:templates/generic-form.jinja2'
-        self.pre_validate = pre_validate
-        self.schema = model_to_schema(self.model, excludes)
-        self.validator = validator
-
-    def __call__(self, request):
-        kwargs = {}
-        if self.validator is not None:
-            kwargs['validator'] = self.validator
-        inst = self.schema(**kwargs)
-        form = deform.Form(inst.bind(db=dbsession(request)),
-                           buttons=('add',))
-        if 'add' in request.POST:
-            form_values = dict(request.POST)
-            if self.pre_validate is not None:
-                self.pre_validate(form_values)
-
-            try:
-                converted = form.validate(form_values.items())
-            except deform.ValidationFailure, e:
-                return {'form': e.render()}
-
-            m = self.model(**converted)
-            db = dbsession(request)
-            db.add(m)
-            db.flush()
-            request.registry.notify(ObjectCreated(m))
-            request.session.flash('New %s created' % self.model_label)
-
-        return {'form': form.render(),
-                'item_label': self.model_label or \
-                    self.model.__name__.decode('utf-8')}
-
-
-class ObjectCreated(object):
-    def __init__(self, obj):
-        self.obj = obj
-
-
-class view_add_form_config(object):
-    '''A decorator to identify a function as being pre-form-processing
-    validator for a new form view.
-    '''
-
-    def __init__(self, model, context,
-                 renderer='', name='add',
-                 model_label=u'',
-                 validator=None,
-                 permission=None,
-                 excludes=[]):
-        self.renderer = renderer or \
-            'khufu_deform:templates/generic-form.jinja2'
-
-        v = view_config(context=context,
-                        name=name,
-                        renderer=self.renderer,
-                        permission=permission)
-        self.view = v(AddFormView(model,
-                                  model_label=model_label,
-                                  name=name,
-                                  excludes=excludes,
-                                  validator=validator))
-
-    def __call__(self, f):
-        self.view.pre_validate = f
-        return self.view
