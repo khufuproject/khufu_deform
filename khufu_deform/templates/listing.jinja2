@@ -21,7 +21,8 @@
   <tbody>
 {% for record in items -%}
     <tr>
-{% for item in record -%}
+      <td><a href="{{ record[0] }}/">{{ record[0] }}</a></td>
+{% for item in record[1:] -%}
       <td>{{item}}</td>
 {%- endfor %}
     </tr>

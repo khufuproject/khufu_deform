@@ -41,7 +41,7 @@ class Root(dict):
     def __init__(self, request):
         self.request = request
         self.db = dbsession(request)
-        self['notes'] = NoteContainer()
+        self['notes'] = NoteContainer(request)
 
 
 def root(request):
@@ -50,7 +50,13 @@ def root(request):
 
 
 class NoteContainer(object):
-    pass
+
+    def __init__(self, request):
+        self.request = request
+
+    def __getitem__(self, k):
+        q = dbsession(self.request).query(Note)
+        return q.get(int(k))
 
 
 class Note(Base):
@@ -58,6 +64,10 @@ class Note(Base):
 
     id = Column(Integer, primary_key=True)
     text = Column(Unicode(200), nullable=True)
+
+    def __str__(self):
+        return '<Note id=%i>' % (self.id)
+    __repr__ = __str__
 
 
 def app(global_conf, **settings):
@@ -78,8 +88,10 @@ def app(global_conf, **settings):
     config.include('khufu_deform')
     config.add_add_form_view(model_class=Note,
                              container_class=NoteContainer)
+    config.add_edit_form_view(model_class=Note)
     config.add_list_view(model_class=Note,
                          container_class=NoteContainer)
+    config.add_view_view(model_class=Note)
     return config.make_wsgi_app()
 
 
