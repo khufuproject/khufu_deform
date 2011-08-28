@@ -7,6 +7,9 @@ from khufu_deform.views import (
 
 
 def includeme(config):
+    '''Inclusion helper for Pyramid.
+    '''
+
     config.include('khufu_sqlalchemy')
     config.include('pyramid_jinja2')
     config.add_static_view('deform-static', 'deform:static/')
