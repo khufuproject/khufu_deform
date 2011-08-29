@@ -4,6 +4,7 @@ from pyramid.renderers import render_to_response
 import deform
 from zope.interface import implements, Interface
 from sqlalchemy.orm import object_mapper
+from pyramid.httpexceptions import HTTPSeeOther
 
 from .utils import ObjectCreatedEvent, ObjectModifiedEvent
 
@@ -160,7 +161,8 @@ class ModelAddView(ModelView):
                                           {'form': e.render()},
                                           request=request)
 
-            self.save(request, converted)
+            m = self.save(request, converted)
+            return HTTPSeeOther(location=self.view_url(m, request))
 
         res = {'form': self.render_form(form, request.context),
                'form_type': self.name,
@@ -169,6 +171,11 @@ class ModelAddView(ModelView):
         res = render_to_response(self.renderer, res, request=request)
         return res
 
+    def get_form(self, request):
+        inst = self.schema().bind(db=dbsession(request))
+        form = deform.Form(inst, buttons=('add',))
+        return form
+
     def save(self, request, converted):
         m = self.model_class(**converted)
         db = dbsession(request)
@@ -176,6 +183,10 @@ class ModelAddView(ModelView):
         db.flush()
         request.registry.notify(ObjectCreatedEvent(m))
         request.session.flash('New %s created' % self.model_label)
+        return m
+
+    def view_url(self, m, request):
+        return request.relative_url(serialize_pk(m, self.schema))
 
 
 class ModelEditView(ModelAddView):
@@ -183,7 +194,14 @@ class ModelEditView(ModelAddView):
     name = 'edit'
 
     def get_form(self, request):
-        inst = self.schema().bind(db=dbsession(request))
+        schema = self.schema().clone()
+        nodes = dict([(x.name, x) for x in schema.children])
+        for col in self.model_class.__table__.primary_key:
+            if col.name in nodes:
+                del nodes[col.name]
+        schema.children[:] = nodes.values()
+
+        inst = schema.bind(db=dbsession(request))
         form = deform.Form(inst, buttons=('edit',))
         return form
 
@@ -195,12 +213,17 @@ class ModelEditView(ModelAddView):
 
     def save(self, request, converted):
         db = dbsession(request)
-        m = db.query(self.model_class).get(converted['id'])
-        m.__dict__.update(converted)
+        m = request.context
+        for k, v in converted.items():
+            setattr(m, k, v)
         db.add(m)
         db.flush()
         request.registry.notify(ObjectModifiedEvent(m))
         request.session.flash('%s modified' % m)
+        return m
+
+    def view_url(self, m, request):
+        return request.relative_url('.')
 
 
 class ListView(ViewMixin):
@@ -263,7 +286,7 @@ class Pager(object):
             q = q.offset(self.start)
         q = q.limit(self.limit)
 
-        s = u'%i through %i' % (self.start, self.start + q.count())
+        s = u'%i through %i (%s)' % (self.start, self.start + q.count(), total)
         if self.start > 0:
             start = self.start - self.limit
             if start <= 0:
