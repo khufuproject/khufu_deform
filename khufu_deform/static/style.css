@@ -1,11 +1,28 @@
 .khufu_deform {
     font-family: Ubuntu, Arial, Tahoma, Verdana, Sans-Serif;
 }
-
+.khufu_deform table.listing .view,
+.khufu_deform table.listing .edit,
+.khufu_deform table.listing .checkbox {
+    width: 2%;
+}
 .khufu_deform table.listing {
     width: 100%;
 }
-
 .khufu_deform th {
     text-align: left;
+}
+.khufu_deform .pager {
+    margin: 1em 0;
+    text-align: center;
+}
+.khufu_deform .pager .next:after {
+    content: ' >>';
+}
+.khufu_deform .pager .previous:before {
+    content: '<< ';
+}
+.khufu_deform .pager .next,
+.khufu_deform .pager .previous {
+    margin: 0 1em;
 }

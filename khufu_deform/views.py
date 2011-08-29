@@ -3,6 +3,7 @@ from khufu_deform._api import model_to_schema
 from pyramid.renderers import render_to_response
 import deform
 from zope.interface import implements, Interface
+from sqlalchemy.orm import object_mapper
 
 from .utils import ObjectCreatedEvent, ObjectModifiedEvent
 
@@ -72,6 +73,25 @@ def get_schema_mapping(c, model_class):
     return schema
 
 
+def obj_to_dict(obj, schema):
+    d = {}
+    for col in schema.nodes:
+        v = getattr(obj, col.name, _marker)
+        if v != _marker:
+            d[col.name] = v
+    return d
+
+
+def serialize_pk(obj, schema):
+    mapper = object_mapper(obj)
+    pk = mapper.primary_key_from_instance(obj)
+    return '_'.join([str(x) for x in pk])
+
+
+def unserialize_pk(s):
+    return tuple([int(x) for x in s.split('-')])
+
+
 class ViewMixin(object):
     model_class = None
     schema = None
@@ -84,16 +104,8 @@ class ViewMixin(object):
         self.schema = get_schema_mapping(self.config, self.model_class)
         self.renderer = renderer or self.renderer
 
-    def to_dict(self, obj):
-        d = {}
-        for col in self.schema.nodes:
-            v = getattr(obj, col.name, _marker)
-            if v != _marker:
-                d[col.name] = v
-        return d
-
     def render_form(self, form, obj=None):
-        return form.render(self.to_dict(obj), readonly=True)
+        return form.render(obj_to_dict(obj, self.schema), readonly=True)
 
     def get_form(self, request):
         inst = self.schema().bind(db=dbsession(request))
@@ -112,7 +124,7 @@ class ModelView(ViewMixin):
     renderer = 'khufu_deform:templates/generic-view.jinja2'
 
     def render_form(self, form, obj=None):
-        return form.render(self.to_dict(obj), readonly=True)
+        return form.render(obj_to_dict(obj, self.schema), readonly=True)
 
     def __call__(self, request):
         form = self.get_form(request)
@@ -178,7 +190,7 @@ class ModelEditView(ModelAddView):
     def render_form(self, form, obj=None):
         args = []
         if obj is not None:
-            args.append(self.to_dict(obj))
+            args.append(obj_to_dict(obj, self.schema))
         return form.render(*args, readonly=False)
 
     def save(self, request, converted):
@@ -195,31 +207,71 @@ class ListView(ViewMixin):
 
     renderer = 'khufu_deform:templates/listing.jinja2'
     model_label = None
+    limit = 10
 
     def __call__(self, request):
         item_label = self.model_label or \
             self.model_class.__name__.decode('utf-8')
 
-        limit = 10
-        firstcol = self.model_class.__mapper__.columns.keys()[0]
-        firstcol = self.model_class.__mapper__.columns[firstcol]
-        q = dbsession(request).query(firstcol)
-        total = q.count()
+        db = dbsession(request)
+        if request.method == 'POST':
+            q = db.query(self.model_class)
+            for x in request.POST.getall('pks'):
+                pk = unserialize_pk(x)
+                db.delete(q.get(pk))
+            db.flush()
 
-        q = dbsession(request).query(*self.model_class.__mapper__.columns)
-        q = q.limit(limit)
-        pager = u''
-        if q.count() < total:
-            pager = 'displaying %i of %i items' % (q.count(), total)
+        q = db.query(self.model_class)
+        start = int(request.params.get('start', 0))
+        pager = Pager(q, limit=self.limit, start=start)
 
         header_items = [x.name.title() for x in self.schema.nodes]
 
-        can_add = True
+        items = []
+        q = db.query(self.model_class)
+        for x in pager.items():
+            d = obj_to_dict(x, self.schema)
+            d['pk'] = serialize_pk(x, self.schema)
+            items.append(d)
 
-        res = {'items': q,
+        res = {'items': items,
                'pager': pager,
-               'can_add': can_add,
+               'can_add': True,
                'header_items': header_items,
                'item_label': item_label,
+               'fields': self.schema.nodes,
                'request': request}
         return render_to_response(self.renderer, res)
+
+
+class Pager(object):
+    def __init__(self, query, limit=10, start=0):
+        self.query = query
+        self.limit = limit
+        self.start = start
+
+    def items(self):
+        q = self.query
+        if self.start > 0:
+            q = q.offset(self.start)
+        return q.limit(self.limit).all()
+
+    def render(self):
+        q = self.query
+        total = q.count()
+        if self.start > 0:
+            q = q.offset(self.start)
+        q = q.limit(self.limit)
+
+        s = u'%i through %i' % (self.start, self.start + q.count())
+        if self.start > 0:
+            start = self.start - self.limit
+            if start <= 0:
+                start = u'.'
+            else:
+                start = u'?start=%i' % start
+            s = (u'<a class="previous" href="%s">Previous</a>' % start) + s
+        if self.start + self.limit < total:
+            start = self.start + self.limit
+            s += u'<a class="next" href="?start=%i">Next</a>' % start
+        return u'<div class="pager">%s</div>' % s

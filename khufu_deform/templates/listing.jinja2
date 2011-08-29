@@ -5,30 +5,67 @@
 {% block title %}{{item_label}}: Listing{% endblock %}
 {% block content %}
 <div class="khufu_deform">
+<form method="POST" id="deform_form">
 <h2>{{item_label}}: Listing</h2>
 {% if can_add %}
+<div>
 <a href="@@add">Add New</a>
+</div>
 {% endif %}
+
+{{pager.render()|safe}}
+
+<script type="text/javascript">
+function toggle() {
+    var els = document.getElementsByTagName('input');
+    var toggle_checkbox = document.getElementById('toggle_checkbox');
+    for (var x = 0; x < els.length; x++) {
+        var el = els[x];
+        if (el.id == 'toggle_checkbox' || el.type != 'checkbox')
+            continue;
+        el.checked = toggle_checkbox.checked;
+    }
+}
+</script>
 
 <table class="listing">
   <thead>
     <tr>
+      <th class="checkbox"><input id="toggle_checkbox" type="checkbox" onchange="toggle()" title="Click to select or unselect all checkboxes"></th>
+      <th class="view"></th>
+      <th class="edit"></th>
 {% for item in header_items -%}
       <th>{{item}}</th>
 {%- endfor %}
     </tr>
   </thead>
   <tbody>
-{% for record in items -%}
+{% for item in items -%}
     <tr>
-      <td><a href="{{ record[0] }}/">{{ record[0] }}</a></td>
-{% for item in record[1:] -%}
-      <td>{{item}}</td>
+      <td><input class="pk" type="checkbox" name="pks" value="{{ item.pk }}">
+      <td><a href="{{ item.pk }}/">View</a></td>
+      <td><a href="{{ item.pk }}/@@edit">Edit</a></td>
+{% for field in fields -%}
+      <td>{{ item[field.name] }}</td>
 {%- endfor %}
     </tr>
 {%- endfor %}
   </tbody>
 </table>
-{{pager}}
+
+<script type="text/javascript">
+function ensure() {
+    var confirmed = confirm('Are you sure?');
+    if (confirmed)
+        document.getElementById('deform_form').submit();
+}
+</script>
+  <div class="actions">
+    <input type="button" value="Delete" onclick="ensure()">
+  </div>
+</form>
+
+{{pager.render()|safe}}
+
 </div>
 {% endblock %}

@@ -4,7 +4,6 @@ from khufu_sqlalchemy import dbsession
 from sqlalchemy import Column, Integer, Unicode, create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from pyramid.config import Configurator
-from pyramid.response import Response
 from pyramid.session import UnencryptedCookieSessionFactoryConfig
 
 Base = declarative_base()
@@ -34,29 +33,18 @@ INITIAL_DATA = [
 ]
 
 
-class Root(dict):
-    __name__ = None
-    __parent__ = None
-
-    def __init__(self, request):
-        self.request = request
-        self.db = dbsession(request)
-        self['notes'] = NoteContainer(request)
-
-
-def root(request):
-    return Response(body='<a href="%s">Notes</a>'
-                    % request.resource_url(request.context, 'notes'))
-
-
 class NoteContainer(object):
 
     def __init__(self, request):
         self.request = request
+        self.db = dbsession(request)
 
     def __getitem__(self, k):
         q = dbsession(self.request).query(Note)
-        return q.get(int(k))
+        try:
+            return q.get(int(k))
+        except:
+            raise KeyError(k)
 
 
 class Note(Base):
@@ -83,7 +71,7 @@ def app(global_conf, **settings):
     settings.setdefault('khufu.dbengine', engine)
     config = Configurator(
         settings=settings,
-        root_factory=Root,
+        root_factory=NoteContainer,
         session_factory=UnencryptedCookieSessionFactoryConfig('itsaseekreet'))
     config.include('khufu_deform')
     config.add_add_form_view(model_class=Note,

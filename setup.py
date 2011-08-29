@@ -30,5 +30,8 @@ setup(name='khufu_deform',
       zip_safe=False,
       install_requires=requires,
       test_suite="khufu_deform.tests",
-      entry_points='',
+      entry_points='''
+      [paste.app_factory]
+      demo = khufu_deform.demo:app
+      ''',
       )
