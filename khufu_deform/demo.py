@@ -74,15 +74,15 @@ def app(global_conf, **settings):
         root_factory=NoteContainer,
         session_factory=UnencryptedCookieSessionFactoryConfig('itsaseekreet'))
     config.include('khufu_deform')
-    config.add_add_form_view(model_class=Note,
-                             container_class=NoteContainer)
-    config.add_edit_form_view(model_class=Note)
-    config.add_list_view(model_class=Note,
-                         container_class=NoteContainer)
-    config.add_view_view(model_class=Note)
+    config.add_crud_views(Note, NoteContainer)
     return config.make_wsgi_app()
 
 
-if __name__ == '__main__':
+def main():
     print "Serving on port 8000..."
     serve(app({}), host='0.0.0.0')
+
+
+if __name__ == '__main__':
+    main()
+

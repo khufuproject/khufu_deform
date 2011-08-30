@@ -11,6 +11,17 @@ from .utils import ObjectCreatedEvent, ObjectModifiedEvent
 _marker = object()
 
 
+def add_crud_views(c, model_class, container_class):
+    '''Setup all possible views for the given model class and
+    it's parent class.
+    '''
+
+    add_add_form_view(c, model_class, container_class)
+    add_edit_form_view(c, model_class)
+    add_view_view(c, model_class)
+    add_list_view(c, model_class, container_class)
+
+
 def add_add_form_view(c, model_class, container_class, name='add',
                       renderer=None):
     '''Setup a new *add form* view for the given *model_class*.

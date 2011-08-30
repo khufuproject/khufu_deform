@@ -54,6 +54,11 @@ class ModelToSchemaMapper(object):
         sqlalchemy.Unicode: colander.String,
         sqlalchemy.DateTime: colander.DateTime,
         sqlalchemy.Integer: colander.Integer,
+        sqlalchemy.Float: colander.Float,
+        sqlalchemy.Boolean: colander.Boolean,
+        sqlalchemy.Date: colander.Date,
+        sqlalchemy.Time: colander.Time,
+        sqlalchemy.Numeric: colander.Float,
     }
 
     def column_to_node(self, model_class, col):
@@ -66,7 +71,7 @@ class ModelToSchemaMapper(object):
 
         if type_factory is None:
             raise ValueError('Could not derive colander type '
-                             'from: %s' % str(col))
+                             'from: %s (%s)' % (str(col), col.type))
 
         kwargs = {'typ': type_factory()}
         if col.nullable:
