@@ -11,49 +11,58 @@ from .utils import ObjectCreatedEvent, ObjectModifiedEvent
 _marker = object()
 
 
-def add_crud_views(c, model_class, container_class):
+def add_crud_views(c, model_class, container_class, view_config=None):
     '''Setup all possible views for the given model class and
     it's parent class.
     '''
 
-    add_add_form_view(c, model_class, container_class)
-    add_edit_form_view(c, model_class)
-    add_view_view(c, model_class)
-    add_list_view(c, model_class, container_class)
+    add_add_form_view(c, model_class=model_class,
+                      container_class=container_class,
+                      view_config=view_config)
+
+    add_edit_form_view(c, model_class=model_class, view_config=view_config)
+
+    add_view_view(c, model_class=model_class, view_config=view_config)
+
+    add_list_view(c, model_class=model_class,
+                  container_class=container_class,
+                  view_config=view_config)
 
 
 def add_add_form_view(c, model_class, container_class, name='add',
-                      renderer=None):
+                      renderer=None, view_config=None):
     '''Setup a new *add form* view for the given *model_class*.
     '''
 
     view = ModelAddView(c, model_class, renderer=renderer)
-    c.add_view(view, name=name, context=container_class)
+    c.add_view(view, name=name, context=container_class, **(view_config or {}))
 
 
-def add_edit_form_view(c, model_class, name='edit', renderer=None):
+def add_edit_form_view(c, model_class, name='edit', renderer=None,
+                       view_config=None):
     '''Setup a new *edit form* view for the given *model_class*.
     '''
 
     view = ModelEditView(c, model_class, renderer=renderer)
-    c.add_view(view, name=name, context=model_class)
+    c.add_view(view, name=name, context=model_class, **(view_config or {}))
 
 
-def add_view_view(c, model_class, name='', renderer=None):
+def add_view_view(c, model_class, name='', renderer=None,
+                  view_config=None):
     '''Setup a new *view* view for the given *model_class*.
     '''
 
     view = ModelView(c, model_class, renderer=renderer)
-    c.add_view(view, name=name, context=model_class)
+    c.add_view(view, name=name, context=model_class, **(view_config or {}))
 
 
 def add_list_view(c, model_class, container_class, name='',
-                  renderer=None):
+                  view_config=None, renderer=None):
     '''Setup a new *list* view for the given *model_class*.
     '''
 
     view = ListView(c, model_class, renderer=renderer)
-    c.add_view(view, context=container_class, name=name)
+    c.add_view(view, context=container_class, name=name, **(view_config or {}))
 
 
 class ISchemaMappings(Interface):
@@ -275,7 +284,7 @@ class ListView(ViewMixin):
                'item_label': item_label,
                'fields': self.schema.nodes,
                'request': request}
-        return render_to_response(self.renderer, res)
+        return render_to_response(self.renderer, res, request=request)
 
 
 class Pager(object):

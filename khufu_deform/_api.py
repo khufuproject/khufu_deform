@@ -47,6 +47,26 @@ class DeferredAll(colander.deferred):
         return colander.All(*full)
 
 
+class Enum(colander.SchemaType):
+    def __init__(self, *options):
+        self.options = set(options)
+
+    def serialize(self, node, appstruct):
+        if appstruct is colander.null:
+            return colander.null
+
+        return appstruct
+
+    def deserialize(self, node, cstruct):
+        if not cstruct:
+            return colander.null
+
+        if cstruct not in self.options:
+            raise NotImplemented('deserializing not yet working')
+
+        return cstruct
+
+
 class ModelToSchemaMapper(object):
 
     type_mappings = {
@@ -59,6 +79,7 @@ class ModelToSchemaMapper(object):
         sqlalchemy.Date: colander.Date,
         sqlalchemy.Time: colander.Time,
         sqlalchemy.Numeric: colander.Float,
+        sqlalchemy.Enum: Enum,
     }
 
     def column_to_node(self, model_class, col):
