@@ -1,3 +1,10 @@
+from khufu_deform._api import (
+    CAN_ADD,
+    CAN_MODIFY,
+    CAN_VIEW,
+    CAN_ITERATE,
+    )
+
 from khufu_deform.views import (
     add_crud_views,
     add_add_form_view,

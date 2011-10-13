@@ -2,6 +2,11 @@ import colander
 import sqlalchemy
 from sqlalchemy.sql import func
 
+CAN_VIEW = 'can_view'
+CAN_ADD = 'can_add'
+CAN_MODIFY = 'can_modify'
+CAN_ITERATE = 'can_iterate'
+
 
 class DBUniqueCheck(object):
     def __init__(self, db, model_class, field, case_sensitive=True):
@@ -80,12 +85,16 @@ class ModelToSchemaMapper(object):
         sqlalchemy.Time: colander.Time,
         sqlalchemy.Numeric: colander.Float,
         sqlalchemy.Enum: Enum,
+        sqlalchemy.TIMESTAMP: colander.DateTime,
+        sqlalchemy.SmallInteger: colander.Integer,
+        sqlalchemy.Text: colander.String,
+        sqlalchemy.BigInteger: colander.Integer,
     }
 
     def column_to_node(self, model_class, col):
         if isinstance(col.type, sqlalchemy.types.NullType) and \
                 len(getattr(col, 'foreign_keys', ())) > 0:
-            source_col = col.foreign_keys[0].column
+            source_col = tuple(col.foreign_keys)[0].column
             type_factory = self.type_mappings.get(type(source_col.type))
         else:
             type_factory = self.type_mappings.get(type(col.type))

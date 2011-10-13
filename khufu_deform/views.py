@@ -1,3 +1,4 @@
+from colander import null
 from khufu_sqlalchemy import dbsession
 from khufu_deform._api import model_to_schema
 from pyramid.renderers import render_to_response
@@ -7,18 +8,21 @@ from sqlalchemy.orm import object_mapper
 from pyramid.httpexceptions import HTTPSeeOther
 
 from .utils import ObjectCreatedEvent, ObjectModifiedEvent
+from ._api import CAN_ADD, CAN_VIEW, CAN_ITERATE, CAN_MODIFY
 
 _marker = object()
 
 
-def add_crud_views(c, model_class, container_class, view_config=None):
+def add_crud_views(c, model_class, container_class, view_config=None,
+                   add_excludes=None):
     '''Setup all possible views for the given model class and
     it's parent class.
     '''
 
     add_add_form_view(c, model_class=model_class,
                       container_class=container_class,
-                      view_config=view_config)
+                      view_config=view_config,
+                      add_excludes=add_excludes)
 
     add_edit_form_view(c, model_class=model_class, view_config=view_config)
 
@@ -30,12 +34,15 @@ def add_crud_views(c, model_class, container_class, view_config=None):
 
 
 def add_add_form_view(c, model_class, container_class, name='add',
-                      renderer=None, view_config=None):
+                      renderer=None, view_config=None, add_excludes=None):
     '''Setup a new *add form* view for the given *model_class*.
     '''
 
-    view = ModelAddView(c, model_class, renderer=renderer)
-    c.add_view(view, name=name, context=container_class, **(view_config or {}))
+    view = ModelAddView(c, model_class, renderer=renderer,
+                        excludes=add_excludes)
+    c.add_view(view, name=name, context=container_class,
+               permission=CAN_ADD,
+               **(view_config or {}))
 
 
 def add_edit_form_view(c, model_class, name='edit', renderer=None,
@@ -44,7 +51,9 @@ def add_edit_form_view(c, model_class, name='edit', renderer=None,
     '''
 
     view = ModelEditView(c, model_class, renderer=renderer)
-    c.add_view(view, name=name, context=model_class, **(view_config or {}))
+    c.add_view(view, name=name, context=model_class,
+               permission=CAN_MODIFY,
+               **(view_config or {}))
 
 
 def add_view_view(c, model_class, name='', renderer=None,
@@ -53,7 +62,9 @@ def add_view_view(c, model_class, name='', renderer=None,
     '''
 
     view = ModelView(c, model_class, renderer=renderer)
-    c.add_view(view, name=name, context=model_class, **(view_config or {}))
+    c.add_view(view, name=name, context=model_class,
+               permission=CAN_VIEW,
+               **(view_config or {}))
 
 
 def add_list_view(c, model_class, container_class, name='',
@@ -62,7 +73,9 @@ def add_list_view(c, model_class, container_class, name='',
     '''
 
     view = ListView(c, model_class, renderer=renderer)
-    c.add_view(view, context=container_class, name=name, **(view_config or {}))
+    c.add_view(view, context=container_class, name=name,
+               permission=CAN_ITERATE,
+               **(view_config or {}))
 
 
 class ISchemaMappings(Interface):
@@ -119,18 +132,19 @@ class ViewMixin(object):
     renderer = None
     config = None
 
-    def __init__(self, config, model_class, renderer=''):
+    def __init__(self, config, model_class, renderer='', excludes=None):
         self.config = config
         self.model_class = model_class
         self.schema = get_schema_mapping(self.config, self.model_class)
         self.renderer = renderer or self.renderer
+        self.excludes = excludes or []
 
     def render_form(self, form, obj=None):
         return form.render(obj_to_dict(obj, self.schema), readonly=True)
 
     def get_form(self, request):
         inst = self.schema().bind(db=dbsession(request))
-        form = deform.Form(inst)
+        form = deform.Form(inst, use_ajax=True)
         return form
 
     def __call__(self, request):
@@ -181,6 +195,9 @@ class ModelAddView(ModelView):
                                           {'form': e.render()},
                                           request=request)
 
+            for k, v in converted.items():
+                if v == null:
+                    converted[k] = None
             m = self.save(request, converted)
             return HTTPSeeOther(location=self.view_url(m, request))
 
@@ -192,8 +209,11 @@ class ModelAddView(ModelView):
         return res
 
     def get_form(self, request):
-        inst = self.schema().bind(db=dbsession(request))
-        form = deform.Form(inst, buttons=('add',))
+        schema = self.schema().clone()
+        for x in self.excludes:
+            del schema[x]
+        inst = schema.bind(db=dbsession(request))
+        form = deform.Form(inst, buttons=('add',), use_ajax=True)
         return form
 
     def save(self, request, converted):
@@ -222,7 +242,7 @@ class ModelEditView(ModelAddView):
         schema.children[:] = nodes.values()
 
         inst = schema.bind(db=dbsession(request))
-        form = deform.Form(inst, buttons=('edit',))
+        form = deform.Form(inst, buttons=('edit',), use_ajax=True)
         return form
 
     def render_form(self, form, obj=None):
@@ -257,21 +277,21 @@ class ListView(ViewMixin):
             self.model_class.__name__.decode('utf-8')
 
         db = dbsession(request)
+        q = db.query(self.model_class)
         if request.method == 'POST':
-            q = db.query(self.model_class)
             for x in request.POST.getall('pks'):
                 pk = unserialize_pk(x)
                 db.delete(q.get(pk))
             db.flush()
 
-        q = db.query(self.model_class)
         start = int(request.params.get('start', 0))
-        pager = Pager(q, limit=self.limit, start=start)
+        table = self.model_class.__table__
+        total = db.query(*[x for x in table.primary_key.columns]).count()
+        pager = Pager(q, total=total, limit=self.limit, start=start)
 
         header_items = [x.name.title() for x in self.schema.nodes]
 
         items = []
-        q = db.query(self.model_class)
         for x in pager.items():
             d = obj_to_dict(x, self.schema)
             d['pk'] = serialize_pk(x, self.schema)
@@ -288,25 +308,28 @@ class ListView(ViewMixin):
 
 
 class Pager(object):
-    def __init__(self, query, limit=10, start=0):
+    def __init__(self, query, total=None, limit=10, start=0):
         self.query = query
         self.limit = limit
         self.start = start
+        self._items = None
+        self._total = total
 
     def items(self):
-        q = self.query
-        if self.start > 0:
-            q = q.offset(self.start)
-        return q.limit(self.limit).all()
+        if self._items is None:
+            q = self.query
+            if self._total is None:
+                self._total = q.count()
+            if self.start > 0:
+                q = q.offset(self.start)
+            self._items = q.limit(self.limit).all()
+        return self._items
 
     def render(self):
-        q = self.query
-        total = q.count()
-        if self.start > 0:
-            q = q.offset(self.start)
-        q = q.limit(self.limit)
-
-        s = u'%i through %i (%s)' % (self.start, self.start + q.count(), total)
+        items = self.items()
+        s = u'%i through %i (%i)' % (self.start,
+                                     self.start + len(items),
+                                     self._total)
         if self.start > 0:
             start = self.start - self.limit
             if start <= 0:
@@ -314,7 +337,7 @@ class Pager(object):
             else:
                 start = u'?start=%i' % start
             s = (u'<a class="previous" href="%s">Previous</a>' % start) + s
-        if self.start + self.limit < total:
+        if self.start + self.limit < self._total:
             start = self.start + self.limit
             s += u'<a class="next" href="?start=%i">Next</a>' % start
         return u'<div class="pager">%s</div>' % s
