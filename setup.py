@@ -12,7 +12,7 @@ requires = [
     ]
 
 setup(name='khufu_deform',
-      version='0.1',
+      version='1.0a1',
       description='Deform bindings and automatic CRUD views for ' \
           'SQLAlchemy models on Pyramid',
       long_description=README + '\n\n' + CHANGES,

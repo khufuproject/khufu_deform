@@ -74,7 +74,8 @@ def app(global_conf, **settings):
         root_factory=NoteContainer,
         session_factory=UnencryptedCookieSessionFactoryConfig('itsaseekreet'))
     config.include('khufu_deform')
-    config.add_crud_views(Note, NoteContainer)
+    config.add_crud_views(Note, NoteContainer,
+                          add_excludes=['id'])
     return config.make_wsgi_app()
 
 
@@ -85,4 +86,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

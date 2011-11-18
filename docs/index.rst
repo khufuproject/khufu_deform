@@ -43,6 +43,25 @@ The standard way to setup CRUD views is as follows:
 
 For a more complete example please see the ``khufu_deform.demo`` python module.
 
+Configurator Directives
+=======================
+
+Including *khufu_deform* with a ``Configurator`` instance makes available
+the following directives:
+
+  - ``add_crud_views`` - Maps default crud views against a given model class
+
+  - ``add_add_form_view`` - Map a view containing a form for adding new instances
+ 
+  - ``add_edit_form_view`` - Map a view containing a form for editing instances
+ 
+  - ``add_list_view`` - Map a view for listing instances of the model
+ 
+  - ``add_view_view`` - Map a view for displaying an instance
+ 
+See :ref:`khufu_deform_api` for more information.
+
+
 Credits
 =======
 
