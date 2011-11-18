@@ -13,7 +13,8 @@ requires = [
 
 setup(name='khufu_deform',
       version='0.1',
-      description='Deform bindings for Pyramid',
+      description='Deform bindings and automatic CRUD views for ' \
+          'SQLAlchemy models on Pyramid',
       long_description=README + '\n\n' + CHANGES,
       classifiers=[
         "License :: OSI Approved :: BSD License",
@@ -23,7 +24,7 @@ setup(name='khufu_deform',
       license='BSD',
       author='Rocky Burt',
       author_email='rocky@serverzen.com',
-      url='https://github.com/serverzen/khufu_deform',
+      url='http://khufuproject.github.com/khufu_deform',
       keywords='pyramid khufu deform',
       packages=find_packages(),
       include_package_data=True,
