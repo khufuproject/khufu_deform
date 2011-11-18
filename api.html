@@ -1,0 +1,180 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>khufu_deform API &mdash; khufu_deform 1.0a1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/khufu.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.0a1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="khufu_deform 1.0a1 documentation" href="index.html" />
+    <link rel="next" title="Glossary" href="glossary.html" />
+    <link rel="prev" title="khufu_deform" href="index.html" />
+<link rel="stylesheet" href="http://static.pylonsproject.org/fonts/nobile/stylesheet.css" type="text/css" media="screen" charset="utf-8" />
+<link rel="stylesheet" href="http://static.pylonsproject.org/fonts/neuton/stylesheet.css" type="text/css" media="screen" charset="utf-8" />
+<!--[if lte IE 6]>
+<link rel="stylesheet" href="_static/ie6.css" type="text/css" media="screen" charset="utf-8" />
+<![endif]-->
+<link rel="shortcut icon" href="_static/khufu.ico"/>
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-23527797-1']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+  </head>
+  <body>
+<div class="header-small">
+	
+	<div class="logo-small">
+		<a href="index.html">
+      		<img class="logo" src="_static/khufu-small.png" alt="Logo"/>
+		</a>
+  	</div>
+</div>
+
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="glossary.html" title="Glossary"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="khufu_deform"
+             accesskey="P">previous</a> |</li>
+    	<li><a href="index.html">Home</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-khufu_deform">
+<span id="id1"></span><span id="khufu-deform-api"></span><h1><a class="reference internal" href="#module-khufu_deform" title="khufu_deform"><tt class="xref py py-mod docutils literal"><span class="pre">khufu_deform</span></tt></a> API<a class="headerlink" href="#module-khufu_deform" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="khufu_deform.includeme">
+<tt class="descclassname">khufu_deform.</tt><tt class="descname">includeme</tt><big>(</big><em>config</em><big>)</big><a class="reference internal" href="_modules/khufu_deform.html#includeme"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#khufu_deform.includeme" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inclusion helper for Pyramid.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="khufu_deform.add_crud_views">
+<tt class="descclassname">khufu_deform.</tt><tt class="descname">add_crud_views</tt><big>(</big><em>c</em>, <em>model_class</em>, <em>container_class</em>, <em>view_config=None</em>, <em>add_excludes=None</em><big>)</big><a class="headerlink" href="#khufu_deform.add_crud_views" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup all possible views for the given model class and
+it&#8217;s parent class.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="khufu_deform.add_add_form_view">
+<tt class="descclassname">khufu_deform.</tt><tt class="descname">add_add_form_view</tt><big>(</big><em>c</em>, <em>model_class</em>, <em>container_class</em>, <em>name='add'</em>, <em>renderer=None</em>, <em>view_config=None</em>, <em>add_excludes=None</em><big>)</big><a class="headerlink" href="#khufu_deform.add_add_form_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a new <em>add form</em> view for the given <em>model_class</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="khufu_deform.add_edit_form_view">
+<tt class="descclassname">khufu_deform.</tt><tt class="descname">add_edit_form_view</tt><big>(</big><em>c</em>, <em>model_class</em>, <em>name='edit'</em>, <em>renderer=None</em>, <em>view_config=None</em><big>)</big><a class="headerlink" href="#khufu_deform.add_edit_form_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a new <em>edit form</em> view for the given <em>model_class</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="khufu_deform.add_list_view">
+<tt class="descclassname">khufu_deform.</tt><tt class="descname">add_list_view</tt><big>(</big><em>c</em>, <em>model_class</em>, <em>container_class</em>, <em>name=''</em>, <em>view_config=None</em>, <em>renderer=None</em><big>)</big><a class="headerlink" href="#khufu_deform.add_list_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a new <em>list</em> view for the given <em>model_class</em>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="khufu_deform.add_view_view">
+<tt class="descclassname">khufu_deform.</tt><tt class="descname">add_view_view</tt><big>(</big><em>c</em>, <em>model_class</em>, <em>name=''</em>, <em>renderer=None</em>, <em>view_config=None</em><big>)</big><a class="headerlink" href="#khufu_deform.add_view_view" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a new <em>view</em> view for the given <em>model_class</em>.</p>
+</dd></dl>
+
+<span class="target" id="module-khufu_deform.demo"></span></div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">khufu_deform</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="glossary.html"
+                        title="next chapter">Glossary</a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="glossary.html" title="Glossary"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="khufu_deform"
+             >previous</a> |</li>
+    	<li><a href="index.html">Home</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rocky Burt.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.2.
+    </div>
+  </body>
+</html>
